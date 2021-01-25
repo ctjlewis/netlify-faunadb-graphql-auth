@@ -1,6 +1,6 @@
-import { gql } from 'apollo-server-lambda'
-import cookie from 'cookie'
 import * as faunadb from 'faunadb'
+import { gql } from 'apollo-server-lambda'
+import { parse } from 'cookie'
 
 const q = faunadb.query
 
@@ -17,7 +17,7 @@ export const localResolvers = {
       let result = false
 
       if (context.event.headers.cookie) {
-        const parsedCookie = cookie.parse(context.event.headers.cookie)
+        const parsedCookie = parse(context.event.headers.cookie)
         const cookieSecret = parsedCookie['fauna-token']
         const userClient = new faunadb.Client({
           secret: cookieSecret,
@@ -45,7 +45,7 @@ export const localResolvers = {
         }
       }
 
-      return new Promise((resolve) => {
+      return await new Promise((resolve) => {
         setTimeout(resolve, 800)
       }).then(() => result)
     },

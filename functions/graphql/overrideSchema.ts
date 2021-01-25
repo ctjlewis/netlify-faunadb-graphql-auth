@@ -1,6 +1,6 @@
-import { gql } from 'apollo-server-lambda'
-import cookie from 'cookie'
 import * as faunadb from 'faunadb'
+import { gql } from 'apollo-server-lambda'
+import { parse } from 'cookie'
 
 const q = faunadb.query
 
@@ -23,14 +23,14 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
 
       // short circuit if cookie exists
       if (context.event.headers.cookie) {
-        const parsedCookie = cookie.parse(context.event.headers.cookie)
+        const parsedCookie = parse(context.event.headers.cookie)
         const cookieSecret = parsedCookie['fauna-token']
         const userClient = new faunadb.Client({
           secret: cookieSecret,
         })
         const alreadyLoggedIn = await userClient
           .query(q.Get(q.CurrentIdentity()))
-          .then((response: { message: string; data: { email: string; }; }) => {
+          .then((response: { message: string; data: { email: string } }) => {
             if (!response.message) {
               if (args.data && args.data.email && response.data.email) {
                 // TODO trying to log in as someone else besides cookie holder.
@@ -67,15 +67,14 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
 
       if (!args.data || !args.data.email) return false
 
-      const result = await info.mergeInfo
-        .delegateToSchema({
-          schema: remoteExecutableSchema,
-          operation: 'mutation',
-          fieldName: 'login',
-          args,
-          context,
-          info,
-        })
+      const result = await info.mergeInfo.delegateToSchema({
+        schema: remoteExecutableSchema,
+        operation: 'mutation',
+        fieldName: 'login',
+        args,
+        context,
+        info,
+      })
       if (result) {
         context.setCookies.push({
           name: 'fauna-token',

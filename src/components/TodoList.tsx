@@ -2,10 +2,9 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, gql } from '@apollo/client'
 import { Editor, EditorState, ContentState } from 'draft-js'
 
+import { useCheckBox } from '../hooks'
 import { GET_ME } from '../graphql/query'
 import { UPDATE_TODO, DELETE_TODO } from '../graphql/mutations'
-
-import { useCheckBox } from '../hooks'
 
 const TodoItem = ({ todo }) => {
   const { _id, title, completed } = todo
@@ -119,6 +118,7 @@ const TodoItem = ({ todo }) => {
 
 const TodoList = () => {
   const { data: myTodosData, loading: myTodosLoading } = useQuery(GET_ME)
+  console.log(JSON.stringify({ myTodosData, myTodosLoading }))
 
   return (
     <div className='todo-list'>

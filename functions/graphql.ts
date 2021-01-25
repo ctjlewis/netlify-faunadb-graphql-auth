@@ -15,16 +15,16 @@ import {
   transformSchema,
 } from 'apollo-server-lambda'
 
+import httpHeadersPlugin from 'apollo-server-plugin-http-headers'
 import { setContext } from 'apollo-link-context'
 import { createHttpLink } from 'apollo-link-http'
-import httpHeadersPlugin from 'apollo-server-plugin-http-headers'
 
-import cookie from 'cookie'
-
+import { parse } from 'cookie'
 import { fetch } from 'cross-fetch'
+
 const httpLink = createHttpLink({
   uri: 'https://graphql.fauna.com/graphql',
-  fetch: fetch
+  fetch: fetch,
 })
 
 // setContext links runs before any remote request by `delegateToSchema`
@@ -33,7 +33,7 @@ const contextlink = setContext((_, previousContext) => {
   const event = previousContext.graphqlContext.event
 
   if (event.headers.cookie) {
-    const parsedCookie = cookie.parse(event.headers.cookie)
+    const parsedCookie = parse(event.headers.cookie)
     const cookieSecret = parsedCookie['fauna-token']
     if (cookieSecret) token = cookieSecret
   }
@@ -111,14 +111,12 @@ console.log('creating server')
 const server = new ApolloServer({
   schema,
   plugins: [httpHeadersPlugin],
-  context: ({ event, context }) => (
-    {
-      event,
-      context,
-      setCookies: [],
-      setHeaders: [],
-    }
-  )
+  context: ({ event, context }) => ({
+    event,
+    context,
+    setCookies: [],
+    setHeaders: [],
+  }),
 })
 
 export const handler = server.createHandler()

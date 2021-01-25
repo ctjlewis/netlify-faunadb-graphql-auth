@@ -13,7 +13,7 @@
     "build:functions": "netlify-lambda build functions -c webpack.prod.js",
     "build": "parcel build src/index.html",
     "serve": "parcel serve src/index.html",
-    "format": "prettier \"{functions,scripts,src}/**/*.{js,ts,html}\" --write",
+    "format": "prettier \"{functions,scripts,src}/**/*.{js,ts,tsx}\" --write",
     "lint": "eslint \"src/**/*.{js,jsx}\" --quiet"
   },
   "keywords": [
