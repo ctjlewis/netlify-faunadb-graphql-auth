@@ -7,6 +7,16 @@
                 }
             } 
         ], 
-        "@babel/preset-typescript"
+        [
+            "@babel/preset-typescript",
+            {
+                "isTSX": true,
+                "allExtensions": true,
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            }
+        ]
+    ],
+    "plugins": [
+        "inline-react-svg"
     ]
 }

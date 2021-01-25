@@ -1,6 +1,11 @@
+/**
+ * Load custom types and module declarations, styles.
+ */
+import './assets'
+import './style.css'
+
 import React from 'react'
 import ReactDOM from 'react-dom'
-import './style.css'
 import App from './App'
 
 import {

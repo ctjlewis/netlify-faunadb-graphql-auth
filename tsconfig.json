@@ -1,9 +1,15 @@
 {
-    "compilerOptions": {
-      "target": "es2018",
-      "module": "commonjs",
-      "lib": ["es2018", "esnext"],
-      "experimentalDecorators": true,
-      "emitDecoratorMetadata": true
-    }
-  }
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["dom", "es6", "esnext"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "jsx": "react"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "src/assets/**",
+  ]
+}

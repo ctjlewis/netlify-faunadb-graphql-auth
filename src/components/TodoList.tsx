@@ -74,7 +74,7 @@ const TodoItem = ({ todo }) => {
     runDeleteTodoMutation({
       variables,
       update(cache) {
-        const meCache = cache.readQuery({ query: GET_ME })
+        const meCache: { me?: any } = cache.readQuery({ query: GET_ME })
         const existingTodos = meCache?.me?.todos?.data
         const filteredTodos = existingTodos.filter((todo) => todo._id !== _id)
 
