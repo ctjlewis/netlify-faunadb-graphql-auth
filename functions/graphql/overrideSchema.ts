@@ -11,7 +11,7 @@ export const overrideTypeDefs = gql`
   }
 
   type Mutation {
-    login(data: LoginInput): String! @resolver(name: "login")
+    login(data: LoginInput): Boolean!
   }
 `
 
