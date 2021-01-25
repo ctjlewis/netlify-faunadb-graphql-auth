@@ -9,7 +9,7 @@
     "watch:src": "parcel --log-level 2 src/index.html",
     "watch:functions": "netlify-lambda serve functions -c webpack.dev.js",
     "dev": "npx npm-run-all -p watch:src watch:functions",
-    "prebuild":"npm run format && npm run build:functions",
+    "prebuild": "npm run format && npm run build:functions",
     "build:functions": "netlify-lambda build functions -c webpack.prod.js",
     "build": "parcel build src/index.html",
     "serve": "parcel serve src/index.html",
@@ -30,11 +30,13 @@
     "apollo-link-http": "^1.5.17",
     "apollo-server-lambda": "^2.19.2",
     "apollo-server-plugin-http-headers": "^0.1.4",
+    "bufferutil": "^4.0.3",
     "draft-js": "^0.11.7",
     "faunadb": "^4.0.0",
     "graphql": "^15.4.0",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "utf-8-validate": "^5.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",

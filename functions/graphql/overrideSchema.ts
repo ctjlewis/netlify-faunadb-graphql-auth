@@ -19,6 +19,7 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
   Mutation: {
     login: async (root, args, context, info) => {
       console.log('*** OVERRIDE mutation login')
+      // console.log(context.event);
 
       // short circuit if cookie exists
       if (context.event.headers.cookie) {
@@ -29,7 +30,7 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
         })
         const alreadyLoggedIn = await userClient
           .query(q.Get(q.CurrentIdentity()))
-          .then((response: { [key: string]: any }) => {
+          .then((response: { message: string; data: { email: string; }; }) => {
             if (!response.message) {
               if (args.data && args.data.email && args.data.email) {
                 // TODO trying to log in as someone else besides cookie holder.
@@ -106,7 +107,7 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
           context,
           info,
         })
-        .catch(console.trace)
+        .catch((e) => console.trace(e))
 
       // kill the cookie
       context.setCookies.push({

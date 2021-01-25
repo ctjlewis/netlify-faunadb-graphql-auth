@@ -24,7 +24,7 @@ export const localResolvers = {
         })
         result = await userClient
           .query(q.Get(q.Identity()))
-          .then((response: { [key: string]: any }) => {
+          .then((response: { message: any }) => {
             if (!response.message) return !!response
             return false
           })

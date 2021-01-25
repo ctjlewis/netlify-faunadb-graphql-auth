@@ -110,16 +110,14 @@ console.log('creating server')
 const server = new ApolloServer({
   schema,
   plugins: [httpHeadersPlugin],
-  context: ({ event, context }) => {
-    // console.log(event)
-
-    return {
+  context: ({ event, context }) => (
+    {
       event,
       context,
       setCookies: [],
       setHeaders: [],
     }
-  },
+  )
 })
 
 export const handler = server.createHandler()
