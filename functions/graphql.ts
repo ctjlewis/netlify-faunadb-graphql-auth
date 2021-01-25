@@ -18,12 +18,13 @@ import {
 import { setContext } from 'apollo-link-context'
 import { createHttpLink } from 'apollo-link-http'
 import httpHeadersPlugin from 'apollo-server-plugin-http-headers'
-import fetch from 'node-fetch'
+
 import cookie from 'cookie'
 
+import { fetch } from 'cross-fetch'
 const httpLink = createHttpLink({
   uri: 'https://graphql.fauna.com/graphql',
-  fetch,
+  fetch: fetch
 })
 
 // setContext links runs before any remote request by `delegateToSchema`
@@ -97,7 +98,7 @@ import {
 // *****************************************************************************
 
 const schema = mergeSchemas({
-  schemas: [overrideTypeDefs, localExecutableSchema, transformedRemoteSchema],
+  schemas: [transformedRemoteSchema, overrideTypeDefs, localExecutableSchema],
   resolvers: createOverrideResolvers(remoteExecutableSchema),
 })
 

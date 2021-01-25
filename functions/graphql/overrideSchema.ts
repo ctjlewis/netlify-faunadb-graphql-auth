@@ -32,7 +32,7 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
           .query(q.Get(q.CurrentIdentity()))
           .then((response: { message: string; data: { email: string; }; }) => {
             if (!response.message) {
-              if (args.data && args.data.email && args.data.email) {
+              if (args.data && args.data.email && response.data.email) {
                 // TODO trying to log in as someone else besides cookie holder.
                 // should probably log them out first!
                 return response.data.email === args.data.email
@@ -65,7 +65,7 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
         return false
       }
 
-      if (!args.data || !args.data.email || !args.data.email) return false
+      if (!args.data || !args.data.email) return false
 
       const result = await info.mergeInfo
         .delegateToSchema({
@@ -76,7 +76,6 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
           context,
           info,
         })
-        .catch(console.trace)
       if (result) {
         context.setCookies.push({
           name: 'fauna-token',
