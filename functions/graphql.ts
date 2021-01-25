@@ -1,4 +1,4 @@
-const {
+import {
   ApolloServer,
 
   /* This stuff all comes from graphql-tools
@@ -12,18 +12,18 @@ const {
   mergeSchemas,
   makeExecutableSchema,
   makeRemoteExecutableSchema,
-  transformSchema
-} = require('apollo-server-lambda')
+  transformSchema,
+} from 'apollo-server-lambda'
 
-const { setContext } = require('apollo-link-context')
-const { createHttpLink } = require('apollo-link-http')
-const httpHeadersPlugin = require('apollo-server-plugin-http-headers')
-const fetch = require('node-fetch')
-const cookie = require('cookie')
+import { setContext } from 'apollo-link-context'
+import { createHttpLink } from 'apollo-link-http'
+import httpHeadersPlugin from 'apollo-server-plugin-http-headers'
+import fetch from 'node-fetch'
+import cookie from 'cookie'
 
-const httpLink = new createHttpLink({
+const httpLink = createHttpLink({
   uri: 'https://graphql.fauna.com/graphql',
-  fetch
+  fetch,
 })
 
 // setContext links runs before any remote request by `delegateToSchema`
@@ -39,8 +39,8 @@ const contextlink = setContext((_, previousContext) => {
 
   return {
     headers: {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    },
   }
 })
 
@@ -57,10 +57,10 @@ const link = contextlink.concat(httpLink)
  * on actual Netlify functions.
  */
 // schema was downloaded from fauna and saved to local file.
-const { remoteTypeDefs } = require('./graphql/remoteSchema')
+import { remoteTypeDefs } from './graphql/remoteSchema'
 const remoteExecutableSchema = makeRemoteExecutableSchema({
   schema: remoteTypeDefs,
-  link
+  link,
 })
 
 // remove root fields that we don't want available to the client
@@ -70,27 +70,27 @@ const transformedRemoteSchema = transformSchema(remoteExecutableSchema, [
       !['createTodo', 'createUser', 'deleteUser', 'findUserByID'].includes(
         rootField
       )
-  )
+  ),
 ])
 
 // *****************************************************************************
 // 2) Create a schema for resolvers that are not in the remote schema
 // *****************************************************************************
 
-const { localTypeDefs, localResolvers } = require('./graphql/localSchema')
+import { localTypeDefs, localResolvers } from './graphql/localSchema'
 const localExecutableSchema = makeExecutableSchema({
   typeDefs: localTypeDefs,
-  resolvers: localResolvers
+  resolvers: localResolvers,
 })
 
 // *****************************************************************************
 // 3) create typedefs and resolvers that override
 // *****************************************************************************
 
-const {
+import {
   overrideTypeDefs,
-  createOverrideResolvers
-} = require('./graphql/overrideSchema')
+  createOverrideResolvers,
+} from './graphql/overrideSchema'
 
 // *****************************************************************************
 // 4) put it all together
@@ -98,7 +98,7 @@ const {
 
 const schema = mergeSchemas({
   schemas: [overrideTypeDefs, localExecutableSchema, transformedRemoteSchema],
-  resolvers: createOverrideResolvers(remoteExecutableSchema)
+  resolvers: createOverrideResolvers(remoteExecutableSchema),
 })
 
 // *****************************************************************************
@@ -117,9 +117,9 @@ const server = new ApolloServer({
       event,
       context,
       setCookies: [],
-      setHeaders: []
+      setHeaders: [],
     }
-  }
+  },
 })
 
-exports.handler = server.createHandler()
+export const handler = server.createHandler()

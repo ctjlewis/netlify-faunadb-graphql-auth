@@ -12,9 +12,7 @@ console.log(chalk.cyan('Creating your FaunaDB Database...\n'))
 // 1. Check for required enviroment variables
 if (!process.env.FAUNADB_ADMIN_KEY) {
   console.log(
-    chalk.yellow(
-      'Required FAUNADB_ADMIN_KEY enviroment variable not found.'
-    )
+    chalk.yellow('Required FAUNADB_ADMIN_KEY enviroment variable not found.')
   )
   console.log(
     `Make sure you have generated an admin key and added it to a .env file. See the README for instructions.`
@@ -75,7 +73,7 @@ if (process.env.FAUNADB_ADMIN_KEY) {
 
 async function createFaunaDB(secret) {
   const adminClient = new Client({
-    secret: secret
+    secret: secret,
   })
 
   let appAdminKey
@@ -101,7 +99,7 @@ async function createFaunaDB(secret) {
           q.CreateKey({
             name: `temp admin key for ${DATABASE_NAME}`,
             database: q.Database(DATABASE_NAME),
-            role: 'admin'
+            role: 'admin',
           })
         )
         .then(createThen(`Key "temp admin key for ${DATABASE_NAME}"`))
@@ -114,7 +112,7 @@ async function createFaunaDB(secret) {
      * can create a collection where we can store user documents.
      */
     const appClient = new Client({
-      secret: appAdminKey
+      secret: appAdminKey,
     })
 
     console.log(chalk.cyan('\n3) Uploading Graphql Schema..."'))
@@ -125,9 +123,9 @@ async function createFaunaDB(secret) {
           {
             type: 'application/octet-stream',
             headers: {
-              Authorization: `Bearer ${appAdminKey}`
+              Authorization: `Bearer ${appAdminKey}`,
             },
-            url: 'https://graphql.fauna.com/import'
+            url: 'https://graphql.fauna.com/import',
           },
           (err, res, body) => {
             if (err) reject(err)
@@ -148,10 +146,10 @@ async function createFaunaDB(secret) {
             {
               resource: q.Index('unique_User_email'),
               actions: {
-                read: true
-              }
-            }
-          ]
+                read: true,
+              },
+            },
+          ],
         })
       )
       .then(createThen(`Role "publicFunction"`))
@@ -160,7 +158,7 @@ async function createFaunaDB(secret) {
     await appClient
       .query(
         q.Update(q.Function('login'), {
-          role: q.Role("publicFunction"),
+          role: q.Role('publicFunction'),
           body: q.Query(
             q.Lambda(
               ['input'],
@@ -172,12 +170,12 @@ async function createFaunaDB(secret) {
                     q.Select('email', q.Var('input'))
                   ),
                   {
-                    password: q.Select('password', q.Var('input'))
+                    password: q.Select('password', q.Var('input')),
                   }
                 )
               )
             )
-          )
+          ),
         })
       )
       .then(updateThen('Function "login"'))
@@ -190,7 +188,7 @@ async function createFaunaDB(secret) {
     await appClient
       .query(
         q.Update(q.Function('logout'), {
-          body: q.Query(q.Lambda([], q.Logout(false)))
+          body: q.Query(q.Lambda([], q.Logout(false))),
         })
       )
       .then(updateThen('Function "logout"'))
@@ -200,7 +198,7 @@ async function createFaunaDB(secret) {
     await appClient
       .query(
         q.Update(q.Function('me'), {
-          body: q.Query(q.Lambda([], q.Get(q.Identity())))
+          body: q.Query(q.Lambda([], q.Get(q.Identity()))),
         })
       )
       .then(updateThen('Function "me"'))
@@ -217,10 +215,10 @@ async function createFaunaDB(secret) {
                 data: q.Merge(
                   { completed: false, owner: q.Identity() },
                   q.Var('data')
-                )
+                ),
               })
             )
-          )
+          ),
         })
       )
       .then(updateThen('Function "user_create_todo"'))
@@ -238,10 +236,10 @@ async function createFaunaDB(secret) {
             {
               resource: q.Function('login'),
               actions: {
-                call: true
-              }
-            }
-          ]
+                call: true,
+              },
+            },
+          ],
         })
       )
       .then(createThen(`Role "public"`))
@@ -253,7 +251,7 @@ async function createFaunaDB(secret) {
         .query(
           q.CreateKey({
             name: `Public key for ${DATABASE_NAME}`,
-            role: q.Role('public')
+            role: q.Role('public'),
           })
         )
         .then(createThen(`Key "Public key for ${DATABASE_NAME}"`))
@@ -265,7 +263,7 @@ async function createFaunaDB(secret) {
     /**
      * Update the `FAUNADB_PUBLIC_KEY` variable in .env.
      */
-    writeEnv((env) => env.FAUNADB_PUBLIC_KEY = publicKey);
+    writeEnv((env) => (env.FAUNADB_PUBLIC_KEY = publicKey))
 
     // Regular user.  All users can read their own todos
     await appClient
@@ -274,8 +272,8 @@ async function createFaunaDB(secret) {
           name: 'user',
           membership: [
             {
-              resource: q.Collection('User')
-            }
+              resource: q.Collection('User'),
+            },
           ],
           privileges: [
             {
@@ -322,44 +320,44 @@ async function createFaunaDB(secret) {
                       )
                     )
                   )
-                )
-              }
+                ),
+              },
             },
             {
               resource: q.Collection('User'),
               actions: {
                 read: q.Query(
                   q.Lambda('ref', q.Equals(q.Identity(), q.Var('ref')))
-                )
-              }
+                ),
+              },
             },
             {
               resource: q.Index('todo_owner_by_user'),
               actions: {
                 read: q.Query(
                   q.Lambda('terms', q.Equals(q.Var('terms'), [q.Identity()]))
-                )
-              }
+                ),
+              },
             },
             {
               resource: q.Function('me'),
               actions: {
-                call: true
-              }
+                call: true,
+              },
             },
             {
               resource: q.Function('logout'),
               actions: {
-                call: true
-              }
+                call: true,
+              },
             },
             {
               resource: q.Function('user_create_todo'),
               actions: {
-                call: true
-              }
-            }
-          ]
+                call: true,
+              },
+            },
+          ],
         })
       )
       .then(createThen(`Role "user"`))

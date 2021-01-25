@@ -1,4 +1,4 @@
-const remoteTypeDefs = `
+export const remoteTypeDefs = `
 scalar Date
 
 input LoginInput {
@@ -138,8 +138,3 @@ input UserTodosRelation {
   disconnect: [ID]
 }
 `
-
-module.exports = {
-  remoteTypeDefs
-}
-

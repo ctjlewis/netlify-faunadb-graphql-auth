@@ -1,16 +1,16 @@
-const { gql } = require('apollo-server-lambda')
-const cookie = require('cookie')
-const faunadb = require('faunadb')
+import { gql } from 'apollo-server-lambda'
+import cookie from 'cookie'
+import * as faunadb from 'faunadb'
 
 const q = faunadb.query
 
-const localTypeDefs = gql`
+export const localTypeDefs = gql`
   type Query {
     loggedIn: Boolean!
   }
 `
 
-const localResolvers ={
+export const localResolvers = {
   Query: {
     loggedIn: async (root, args, context) => {
       console.log('LOCAL query loggedIn')
@@ -20,11 +20,11 @@ const localResolvers ={
         const parsedCookie = cookie.parse(context.event.headers.cookie)
         const cookieSecret = parsedCookie['fauna-token']
         const userClient = new faunadb.Client({
-          secret: cookieSecret
+          secret: cookieSecret,
         })
         result = await userClient
           .query(q.Get(q.Identity()))
-          .then((response) => {
+          .then((response: { [key: string]: any }) => {
             if (!response.message) return !!response
             return false
           })
@@ -39,8 +39,8 @@ const localResolvers ={
             value: '',
             options: {
               httpOnly: true,
-              expires: new Date()
-            }
+              expires: new Date(),
+            },
           })
         }
       }
@@ -48,11 +48,6 @@ const localResolvers ={
       return new Promise((resolve) => {
         setTimeout(resolve, 800)
       }).then(() => result)
-    }
+    },
   },
-}
-
-module.exports = {
-  localTypeDefs,
-  localResolvers
 }

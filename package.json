@@ -5,10 +5,13 @@
   "scripts": {
     "create-db": "netlify dev:exec node scripts/create-database.js",
     "create-data": "netlify dev:exec node scripts/create-example-data.js",
-    "bootstrap": "npm run create-db && npm run create-data",
+    "bootstrap": "npx npm-run-all create-db create-data",
+    "watch:src": "parcel --log-level 2 src/index.html",
+    "watch:functions": "netlify-lambda serve functions",
+    "dev": "npx npm-run-all -p watch:src watch:functions",
+    "prebuild":"npm run format",
     "build": "parcel build src/index.html",
-    "dev": "parcel --log-level 2 src/index.html",
-    "format": "prettier \"src/**/*.{js,html}\" --write",
+    "format": "prettier \"{functions,scripts,src}/**/*.{js,ts,html}\" --write",
     "lint": "eslint \"src/**/*.{js,jsx}\" --quiet"
   },
   "keywords": [
@@ -23,7 +26,7 @@
     "@apollo/client": "^3.3.2",
     "apollo-link-context": "^1.0.20",
     "apollo-link-http": "^1.5.17",
-    "apollo-server-lambda": "^2.19.0",
+    "apollo-server-lambda": "^2.19.2",
     "apollo-server-plugin-http-headers": "^0.1.4",
     "draft-js": "^0.11.7",
     "faunadb": "^4.0.0",
@@ -32,14 +35,23 @@
     "react-dom": "^17.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-typescript": "^7.12.7",
+    "@types/aws-lambda": "^8.10.71",
+    "@types/node": "^14.14.22",
+    "apollo-server-testing": "^2.19.2",
+    "ava": "^3.15.0",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "npm-run-all": "^4.1.5",
     "parcel-bundler": "^1.12.4",
     "prettier": "^2.2.1",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "type-graphql": "^1.1.1",
+    "typescript": "^4.1.3"
   }
 }
