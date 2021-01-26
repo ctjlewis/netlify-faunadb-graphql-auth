@@ -31,6 +31,7 @@ const httpLink = createHttpLink({
 const contextlink = setContext((_, previousContext) => {
   let token = process.env.FAUNADB_PUBLIC_KEY // public token
   const event = previousContext.graphqlContext.event
+  console.log({ event })
 
   if (event.headers.cookie) {
     const parsedCookie = parse(event.headers.cookie)
@@ -58,7 +59,7 @@ const link = contextlink.concat(httpLink)
  * on actual Netlify functions.
  */
 // schema was downloaded from fauna and saved to local file.
-import { remoteTypeDefs } from './graphql/remoteSchema'
+import { remoteTypeDefs } from './schema/remoteSchema'
 const remoteExecutableSchema = makeRemoteExecutableSchema({
   schema: remoteTypeDefs,
   link,
@@ -78,7 +79,7 @@ const transformedRemoteSchema = transformSchema(remoteExecutableSchema, [
 // 2) Create a schema for resolvers that are not in the remote schema
 // *****************************************************************************
 
-import { localTypeDefs, localResolvers } from './graphql/localSchema'
+import { localTypeDefs, localResolvers } from './schema/localSchema'
 const localExecutableSchema = makeExecutableSchema({
   typeDefs: localTypeDefs,
   resolvers: localResolvers,
@@ -91,7 +92,7 @@ const localExecutableSchema = makeExecutableSchema({
 import {
   overrideTypeDefs,
   createOverrideResolvers,
-} from './graphql/overrideSchema'
+} from './schema/overrideSchema'
 
 // *****************************************************************************
 // 4) put it all together

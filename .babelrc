@@ -15,8 +15,5 @@
                 "extensions": [".js", ".jsx", ".ts", ".tsx"]
             }
         ]
-    ],
-    "plugins": [
-        "inline-react-svg"
     ]
 }
