@@ -96,12 +96,13 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
         info,
       })
       if (result) {
+        console.log('process.env.NODE_ENV', process.env.NODE_ENV)
         context.setCookies.push({
           name: 'fauna-token',
           value: result,
           options: {
             httpOnly: true,
-            // secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production',
           },
         })
         return true

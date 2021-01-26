@@ -8,10 +8,10 @@
     "bootstrap": "npx npm-run-all create-db create-data",
     "watch:src": "parcel --log-level 2 src/client/ui/index.html",
     "watch:server": "netlify-lambda serve src/server -c webpack.dev.js",
-    "dev": "npx npm-run-all -p watch:src watch:server",
-    "prebuild": "npm run format && npm run build:server",
-    "build:server": "netlify-lambda build src/server -c webpack.prod.js",
-    "build": "parcel build src/client/ui/index.html",
+    "dev": "NODE_ENV=development npx npm-run-all -p watch:src watch:server",
+    "build:server": "NODE_ENV=production netlify-lambda build src/server -c webpack.prod.js",
+    "prebuild": "NODE_ENV=production npm run format && npm run build:server",
+    "build": "NODE_ENV=production parcel build src/client/ui/index.html",
     "serve": "parcel serve src/client/ui/index.html",
     "format": "prettier \"{server,scripts,src}/**/*.{js,ts,tsx}\" --write",
     "lint": "eslint \"src/**/*.{js,jsx}\" --quiet"
@@ -41,7 +41,7 @@
     "utf-8-validate": "^5.0.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.10",
+    "@babel/core": "^7.0.0",
     "@babel/preset-typescript": "^7.12.7",
     "@types/aws-lambda": "^8.10.71",
     "@types/node": "^14.14.22",
