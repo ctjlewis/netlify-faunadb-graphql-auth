@@ -8,7 +8,7 @@ import { useInput } from '../hooks'
 export default function TodoCreateForm() {
   const [runUserCreateTodoMutation] = useMutation(USER_CREATE_TODO)
 
-  const title = useInput('')
+  const title = useInput('', {})
 
   const onSubmit = (event) => {
     event.preventDefault()

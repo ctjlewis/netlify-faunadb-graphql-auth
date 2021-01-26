@@ -198,7 +198,7 @@ async function createFaunaDB(secret) {
     await appClient
       .query(
         q.Update(q.Function('me'), {
-          body: q.Query(q.Lambda([], q.Get(q.Identity()))),
+          body: q.Query(q.Lambda([], q.Get(q.CurrentIdentity()))),
         })
       )
       .then(updateThen('Function "me"'))
@@ -213,7 +213,7 @@ async function createFaunaDB(secret) {
               ['data'],
               q.Create(q.Collection('Todo'), {
                 data: q.Merge(
-                  { completed: false, owner: q.Identity() },
+                  { completed: false, owner: q.CurrentIdentity() },
                   q.Var('data')
                 ),
               })
@@ -283,7 +283,7 @@ async function createFaunaDB(secret) {
                   q.Lambda(
                     'todo',
                     q.Equals(
-                      q.Identity(),
+                      q.CurrentIdentity(),
                       q.Select(['data', 'owner'], q.Var('todo'))
                     )
                   )
@@ -292,7 +292,7 @@ async function createFaunaDB(secret) {
                   q.Lambda(
                     'todo',
                     q.Equals(
-                      q.Identity(),
+                      q.CurrentIdentity(),
                       q.Select(['data', 'owner'], q.Get(q.Var('todo')))
                     )
                   )
@@ -301,7 +301,7 @@ async function createFaunaDB(secret) {
                   q.Lambda(
                     'ref',
                     q.Equals(
-                      q.Identity(),
+                      q.CurrentIdentity(),
                       q.Select(['data', 'owner'], q.Get(q.Var('ref')))
                     )
                   )
@@ -311,7 +311,7 @@ async function createFaunaDB(secret) {
                     ['oldData', 'newData'],
                     q.And(
                       q.Equals(
-                        q.Identity(),
+                        q.CurrentIdentity(),
                         q.Select(['data', 'owner'], q.Var('oldData'))
                       ),
                       q.Equals(
@@ -335,7 +335,7 @@ async function createFaunaDB(secret) {
               resource: q.Index('todo_owner_by_user'),
               actions: {
                 read: q.Query(
-                  q.Lambda('terms', q.Equals(q.Var('terms'), [q.Identity()]))
+                  q.Lambda('terms', q.Equals(q.Var('terms'), [q.CurrentIdentity()]))
                 ),
               },
             },

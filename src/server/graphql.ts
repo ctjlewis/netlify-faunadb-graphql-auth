@@ -30,32 +30,37 @@ const httpLink = createHttpLink({
   credentials: 'include'
 })
 
-// setContext links runs before any remote request by `delegateToSchema`
-/* `setContext` runs before any remote request by `delegateToSchema`,
-this is due to `contextlink.concat`.
-In other words, it runs before delegating to Fauna.
-In general, this function is in charge of deciding which token to use
-in the headers, the public one or the one from the user. For example,
-during login or signup it will always default to the public token
-because it will not find any token in the headers from `previousContext` */
+/**
+ * `setContext` runs before any remote request by `delegateToSchema`, this is
+ * due to `contextlink.concat`. In other words, it runs before delegating to
+ * Fauna. 
+ *
+ * In general, this function is in charge of deciding which token to use in the
+ * headers, the public one or the one from the user. For example, during login
+ * or signup it will always default to the public token because it will not find
+ * any token in the headers from `previousContext`
+ */
 const authLink = setContext((_, previousContext) => {
   console.log(chalk.gray('⚙️  ') + chalk.cyan('schema -- setContext'));
-  let token = process.env.FAUNADB_PUBLIC_KEY; // public token
-  const headers = {...previousContext.graphqlContext.headers};
+  let token = process.env.FAUNADB_PUBLIC_KEY;
+  /**
+   * Get headers for this request.
+   */
+  const event = previousContext.graphqlContext.event || {}
+  const headers = event.headers || {}
+  /**
+   * If there's a cookie header set, reflect it in the response.
+   */
   if (headers.cookie) {
     const parsedCookie = parse(headers.cookie);
     const customCookie = parsedCookie['fauna-token'];
     if (customCookie) {
-      console.log(
-        '   schema -- setContext -- Found custom cookie. Re-setting headers with it.'
-      );
+      console.log('Found cookie in request. Reflecting in response.');
       token = customCookie;
     }
   }
   else {
-    console.log(
-      '   schema -- setContext -- Setting headers with default public token.'
-    );
+    console.log('No cookie found. Setting public key.');
   }
   /**
    * Add token as `Authorization: Bearer abcdef123` header.

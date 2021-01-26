@@ -118,11 +118,11 @@ const TodoItem = ({ todo }) => {
 
 const TodoList = () => {
   const { data: myTodosData, loading: myTodosLoading } = useQuery(GET_ME)
-  console.log(JSON.stringify({ myTodosData, myTodosLoading }))
+  console.log(JSON.stringify({ myTodosData, myTodosLoading }, null, 2))
 
   return (
     <div className='todo-list'>
-      {!myTodosLoading && myTodosData ? (
+      {!myTodosLoading && myTodosData && myTodosData.me ? (
         <ul>
           {myTodosData.me.todos.data.map((todo) => (
             <li key={todo._id}>

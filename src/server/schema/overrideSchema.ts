@@ -1,6 +1,7 @@
 import * as faunadb from 'faunadb'
 import { gql } from 'apollo-server-lambda'
 import { parse } from 'cookie'
+import { Context } from '@apollo/client'
 
 const q = faunadb.query
 
@@ -17,12 +18,29 @@ export const overrideTypeDefs = gql`
 
 export const createOverrideResolvers = (remoteExecutableSchema) => ({
   Mutation: {
-    login: async (root, args, context, info) => {
+    login: async (root, args, context: Context, info) => {
       console.log('*** OVERRIDE mutation login')
       // console.log(context.event);
 
+      const event = context.event || {};
+      const headers = event.headers || {};
+      /**
+       * If there's no cookie header, set an empty cookie
+       */
+      if (!headers.cookie) {
+        // console.log('No cookie header');
+        // context.setCookies.push({
+        //   name: 'fauna-token',
+        //   value: '',
+        //   options: {
+        //     httpOnly: true,
+        //     expires: new Date(),
+        //   },
+        // })
+      }
+
       // short circuit if cookie exists
-      if (context.event.headers.cookie) {
+      else {
         const parsedCookie = parse(context.event.headers.cookie)
         const cookieSecret = parsedCookie['fauna-token']
         const userClient = new faunadb.Client({
@@ -65,7 +83,9 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
         return false
       }
 
-      if (!args.data || !args.data.email) return false
+      if (!args.data || !args.data.email) {
+        return false
+      }
 
       const result = await info.mergeInfo.delegateToSchema({
         schema: remoteExecutableSchema,
@@ -81,7 +101,7 @@ export const createOverrideResolvers = (remoteExecutableSchema) => ({
           value: result,
           options: {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            // secure: process.env.NODE_ENV === 'production',
           },
         })
         return true

@@ -15,7 +15,7 @@ const App = () => {
     GET_LOGGED_IN
   )
 
-  console.log(JSON.stringify({ loggedInData, loggedInLoading }))
+  console.log(JSON.stringify({ loggedInData, loggedInLoading }, null, 2))
 
   if (loggedInLoading) return <p>Loading...</p>
 
