@@ -32,7 +32,7 @@ if (process.env.FAUNADB_ADMIN_KEY) {
 
 async function createExampleData(secret) {
   const adminClient = new Client({
-    secret: secret
+    secret: secret,
   })
 
   let appServerKey
@@ -45,14 +45,14 @@ async function createExampleData(secret) {
           q.CreateKey({
             name: `temp server key for ${DATABASE_NAME}`,
             database: q.Database(DATABASE_NAME),
-            role: 'server'
+            role: 'server',
           })
         )
         .then(createThen(`Key "temp server key for ${DATABASE_NAME}"`))
     ).secret
 
     const appClient = new Client({
-      secret: appServerKey
+      secret: appServerKey,
     })
 
     const userAlice = await appClient
@@ -60,8 +60,8 @@ async function createExampleData(secret) {
         q.Create(q.Collection('User'), {
           credentials: { password: 'secret password' },
           data: {
-            email: 'alice@site.example'
-          }
+            email: 'alice@site.example',
+          },
         })
       )
       .then(createThen(`User "Alice"`))
@@ -72,8 +72,8 @@ async function createExampleData(secret) {
         q.Create(q.Collection('User'), {
           credentials: { password: 'better password' },
           data: {
-            email: 'nancy@site.example'
-          }
+            email: 'nancy@site.example',
+          },
         })
       )
       .then(createThen(`User "Nancy"`))
@@ -86,8 +86,8 @@ async function createExampleData(secret) {
             data: {
               title: q.Var('title'),
               completed: false,
-              owner: userAlice.ref
-            }
+              owner: userAlice.ref,
+            },
           })
         )
       )
@@ -101,8 +101,8 @@ async function createExampleData(secret) {
             data: {
               title: q.Var('title'),
               completed: false,
-              owner: userNancy.ref
-            }
+              owner: userNancy.ref,
+            },
           })
         )
       )

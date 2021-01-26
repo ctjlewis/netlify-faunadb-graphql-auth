@@ -1,11 +1,11 @@
 [build]
-  functions = "functions"
+  functions = "functions-build"
   # This will be run the site build
   command = "npm run build"
   # This is the directory is publishing to netlify's CDN
   publish = "dist"
 
   # note: netlify dev works out of the box with parcel-bundler (or create-react-app)
-  [dev]
+[dev]
   framework = "parcel"
   command = "npm run dev"

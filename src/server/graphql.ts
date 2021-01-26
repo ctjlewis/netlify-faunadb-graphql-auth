@@ -1,4 +1,4 @@
-const {
+import {
   ApolloServer,
 
   /* This stuff all comes from graphql-tools
@@ -13,38 +13,67 @@ const {
   makeExecutableSchema,
   makeRemoteExecutableSchema,
   transformSchema,
-} = require('apollo-server-lambda')
+} from 'apollo-server-lambda'
 
-const { setContext } = require('apollo-link-context')
-const { createHttpLink } = require('apollo-link-http')
-const httpHeadersPlugin = require('apollo-server-plugin-http-headers')
-const fetch = require('node-fetch')
-const cookie = require('cookie')
+import httpHeadersPlugin from 'apollo-server-plugin-http-headers'
+import chalk from 'chalk'
 
-const httpLink = new createHttpLink({
+import { setContext } from 'apollo-link-context'
+import { createHttpLink } from 'apollo-link-http'
+
+import { parse } from 'cookie'
+import { fetch } from 'cross-fetch'
+
+const httpLink = createHttpLink({
   uri: 'https://graphql.fauna.com/graphql',
-  fetch,
+  fetch: fetch,
+  credentials: 'include'
 })
 
-// setContext links runs before any remote request by `delegateToSchema`
-const contextlink = setContext((_, previousContext) => {
-  let token = process.env.FAUNADB_PUBLIC_KEY // public token
-  const event = previousContext.graphqlContext.event
-
-  if (event.headers.cookie) {
-    const parsedCookie = cookie.parse(event.headers.cookie)
-    const cookieSecret = parsedCookie['fauna-token']
-    if (cookieSecret) token = cookieSecret
+/**
+ * `setContext` runs before any remote request by `delegateToSchema`, this is
+ * due to `contextlink.concat`. In other words, it runs before delegating to
+ * Fauna. 
+ *
+ * In general, this function is in charge of deciding which token to use in the
+ * headers, the public one or the one from the user. For example, during login
+ * or signup it will always default to the public token because it will not find
+ * any token in the headers from `previousContext`
+ */
+const authLink = setContext((_, previousContext) => {
+  console.log(chalk.gray('⚙️  ') + chalk.cyan('schema -- setContext'));
+  let token = process.env.FAUNADB_PUBLIC_KEY;
+  /**
+   * Get headers for this request.
+   */
+  const event = previousContext.graphqlContext.event || {}
+  const headers = event.headers || {}
+  /**
+   * If there's a cookie header set, reflect it in the response.
+   */
+  if (headers.cookie) {
+    const parsedCookie = parse(headers.cookie);
+    const customCookie = parsedCookie['fauna-token'];
+    if (customCookie) {
+      console.log('Found cookie in request. Reflecting in response.');
+      token = customCookie;
+    }
   }
-
+  else {
+    console.log('No cookie found. Setting public key.');
+  }
+  /**
+   * Add token as `Authorization: Bearer abcdef123` header.
+   */
   return {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  }
-})
+  };
+});
 
-const link = contextlink.concat(httpLink)
+/* Then we finally create the link to use to handle the remote schemas */
+const link = authLink.concat(httpLink)
 
 // *****************************************************************************
 // 1) Create the remote schema
@@ -57,7 +86,7 @@ const link = contextlink.concat(httpLink)
  * on actual Netlify functions.
  */
 // schema was downloaded from fauna and saved to local file.
-const { remoteTypeDefs } = require('./graphql/remoteSchema')
+import { remoteTypeDefs } from './schema/remoteSchema'
 const remoteExecutableSchema = makeRemoteExecutableSchema({
   schema: remoteTypeDefs,
   link,
@@ -77,7 +106,7 @@ const transformedRemoteSchema = transformSchema(remoteExecutableSchema, [
 // 2) Create a schema for resolvers that are not in the remote schema
 // *****************************************************************************
 
-const { localTypeDefs, localResolvers } = require('./graphql/localSchema')
+import { localTypeDefs, localResolvers } from './schema/localSchema'
 const localExecutableSchema = makeExecutableSchema({
   typeDefs: localTypeDefs,
   resolvers: localResolvers,
@@ -87,10 +116,10 @@ const localExecutableSchema = makeExecutableSchema({
 // 3) create typedefs and resolvers that override
 // *****************************************************************************
 
-const {
+import {
   overrideTypeDefs,
   createOverrideResolvers,
-} = require('./graphql/overrideSchema')
+} from './schema/overrideSchema'
 
 // *****************************************************************************
 // 4) put it all together
@@ -98,6 +127,11 @@ const {
 
 const schema = mergeSchemas({
   schemas: [transformedRemoteSchema, overrideTypeDefs, localExecutableSchema],
+  /* `createOverrideResolvers` helps, as it names implies,
+  to override UDFs present in Fauna Graphql endpoint.
+  These overrides will run before hitting Fauna's servers. 
+  Refer back to setContext for the function that sets
+  the headers before connecting to Fauna. */
   resolvers: createOverrideResolvers(remoteExecutableSchema),
 })
 
@@ -111,8 +145,6 @@ const server = new ApolloServer({
   schema,
   plugins: [httpHeadersPlugin],
   context: ({ event, context }) => {
-    // console.log(event)
-
     return {
       event,
       context,
@@ -122,4 +154,4 @@ const server = new ApolloServer({
   },
 })
 
-exports.handler = server.createHandler()
+export const handler = server.createHandler()

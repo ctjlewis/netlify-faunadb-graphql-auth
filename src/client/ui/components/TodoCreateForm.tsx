@@ -8,7 +8,7 @@ import { useInput } from '../hooks'
 export default function TodoCreateForm() {
   const [runUserCreateTodoMutation] = useMutation(USER_CREATE_TODO)
 
-  const title = useInput('')
+  const title = useInput('', {})
 
   const onSubmit = (event) => {
     event.preventDefault()
@@ -22,7 +22,7 @@ export default function TodoCreateForm() {
     runUserCreateTodoMutation({
       variables,
       update(cache, { data }) {
-        const meCache = cache.readQuery({ query: GET_ME })
+        const meCache: { me?: any } = cache.readQuery({ query: GET_ME })
         const existingTodos = meCache?.me?.todos?.data
         const newTodo = data?.userCreateTodo
         const newCache = {

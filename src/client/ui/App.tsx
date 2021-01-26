@@ -8,13 +8,14 @@ import TodoCreateForm from './components/TodoCreateForm'
 import TodoList from './components/TodoList'
 
 import { useQuery } from '@apollo/client'
-
 import { GET_LOGGED_IN } from './graphql/query'
 
 const App = () => {
   const { data: loggedInData, loading: loggedInLoading } = useQuery(
     GET_LOGGED_IN
   )
+
+  console.log(JSON.stringify({ loggedInData, loggedInLoading }, null, 2))
 
   if (loggedInLoading) return <p>Loading...</p>
 

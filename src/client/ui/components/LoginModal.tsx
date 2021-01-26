@@ -15,8 +15,8 @@ const LoginModal = () => {
     },
   })
 
-  const email = useInput('')
-  const password = useInput('')
+  const email = useInput('', {})
+  const password = useInput('', {})
 
   const onSubmit = (event) => {
     event.preventDefault()

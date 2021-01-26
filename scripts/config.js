@@ -1,3 +1,3 @@
 module.exports = {
-  DATABASE_NAME: 'auth-example'
+  DATABASE_NAME: 'auth-example',
 }

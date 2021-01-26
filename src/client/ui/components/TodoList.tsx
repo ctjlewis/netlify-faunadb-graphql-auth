@@ -2,10 +2,9 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, gql } from '@apollo/client'
 import { Editor, EditorState, ContentState } from 'draft-js'
 
+import { useCheckBox } from '../hooks'
 import { GET_ME } from '../graphql/query'
 import { UPDATE_TODO, DELETE_TODO } from '../graphql/mutations'
-
-import { useCheckBox } from '../hooks'
 
 const TodoItem = ({ todo }) => {
   const { _id, title, completed } = todo
@@ -74,7 +73,7 @@ const TodoItem = ({ todo }) => {
     runDeleteTodoMutation({
       variables,
       update(cache) {
-        const meCache = cache.readQuery({ query: GET_ME })
+        const meCache: { me?: any } = cache.readQuery({ query: GET_ME })
         const existingTodos = meCache?.me?.todos?.data
         const filteredTodos = existingTodos.filter((todo) => todo._id !== _id)
 
@@ -119,10 +118,11 @@ const TodoItem = ({ todo }) => {
 
 const TodoList = () => {
   const { data: myTodosData, loading: myTodosLoading } = useQuery(GET_ME)
+  console.log(JSON.stringify({ myTodosData, myTodosLoading }, null, 2))
 
   return (
     <div className='todo-list'>
-      {!myTodosLoading && myTodosData ? (
+      {!myTodosLoading && myTodosData && myTodosData.me ? (
         <ul>
           {myTodosData.me.todos.data.map((todo) => (
             <li key={todo._id}>
