@@ -16,6 +16,8 @@ import {
 } from 'apollo-server-lambda'
 
 import httpHeadersPlugin from 'apollo-server-plugin-http-headers'
+import chalk from 'chalk'
+
 import { setContext } from 'apollo-link-context'
 import { createHttpLink } from 'apollo-link-http'
 
@@ -25,28 +27,48 @@ import { fetch } from 'cross-fetch'
 const httpLink = createHttpLink({
   uri: 'https://graphql.fauna.com/graphql',
   fetch: fetch,
+  credentials: 'include'
 })
 
 // setContext links runs before any remote request by `delegateToSchema`
-const contextlink = setContext((_, previousContext) => {
-  let token = process.env.FAUNADB_PUBLIC_KEY // public token
-  const event = previousContext.graphqlContext.event
-  console.log({ event })
-
-  if (event.headers.cookie) {
-    const parsedCookie = parse(event.headers.cookie)
-    const cookieSecret = parsedCookie['fauna-token']
-    if (cookieSecret) token = cookieSecret
+/* `setContext` runs before any remote request by `delegateToSchema`,
+this is due to `contextlink.concat`.
+In other words, it runs before delegating to Fauna.
+In general, this function is in charge of deciding which token to use
+in the headers, the public one or the one from the user. For example,
+during login or signup it will always default to the public token
+because it will not find any token in the headers from `previousContext` */
+const authLink = setContext((_, previousContext) => {
+  console.log(chalk.gray('⚙️  ') + chalk.cyan('schema -- setContext'));
+  let token = process.env.FAUNADB_PUBLIC_KEY; // public token
+  const headers = {...previousContext.graphqlContext.headers};
+  if (headers.cookie) {
+    const parsedCookie = parse(headers.cookie);
+    const customCookie = parsedCookie['fauna-token'];
+    if (customCookie) {
+      console.log(
+        '   schema -- setContext -- Found custom cookie. Re-setting headers with it.'
+      );
+      token = customCookie;
+    }
   }
-
+  else {
+    console.log(
+      '   schema -- setContext -- Setting headers with default public token.'
+    );
+  }
+  /**
+   * Add token as `Authorization: Bearer abcdef123` header.
+   */
   return {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  }
-})
+  };
+});
 
-const link = contextlink.concat(httpLink)
+/* Then we finally create the link to use to handle the remote schemas */
+const link = authLink.concat(httpLink)
 
 // *****************************************************************************
 // 1) Create the remote schema
@@ -100,6 +122,11 @@ import {
 
 const schema = mergeSchemas({
   schemas: [transformedRemoteSchema, overrideTypeDefs, localExecutableSchema],
+  /* `createOverrideResolvers` helps, as it names implies,
+  to override UDFs present in Fauna Graphql endpoint.
+  These overrides will run before hitting Fauna's servers. 
+  Refer back to setContext for the function that sets
+  the headers before connecting to Fauna. */
   resolvers: createOverrideResolvers(remoteExecutableSchema),
 })
 
@@ -112,12 +139,14 @@ console.log('creating server')
 const server = new ApolloServer({
   schema,
   plugins: [httpHeadersPlugin],
-  context: ({ event, context }) => ({
-    event,
-    context,
-    setCookies: [],
-    setHeaders: [],
-  }),
+  context: ({ event, context }) => {
+    return {
+      event,
+      context,
+      setCookies: [],
+      setHeaders: [],
+    }
+  },
 })
 
 export const handler = server.createHandler()
